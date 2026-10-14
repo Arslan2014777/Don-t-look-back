@@ -1,0 +1,1084 @@
+
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Don't Look Back</title>
+<style>
+:root{color-scheme:dark;--red:#e32636;--line:#343941}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050608;color:#f2f2f2;font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+button,input{font:inherit}
+button{border:1px solid #4a4e55;background:#191c22;color:#fff;border-radius:12px;padding:12px 15px;font-weight:700;cursor:pointer}
+button:active{transform:scale(.98);background:#292d35}
+.hidden{display:none!important}
+#menu,#endScreen{position:fixed;inset:0;z-index:10;overflow:auto;background:linear-gradient(180deg,rgba(4,5,8,.93),rgba(12,12,15,.98));padding:22px 16px calc(24px + env(safe-area-inset-bottom));touch-action:pan-y}
+.wrap{width:min(680px,100%);margin:0 auto}
+.logo{text-align:center;font-weight:950;letter-spacing:.19em;color:#ed303b;font-size:12px;margin:5px 0 4px}
+h1{text-align:center;font-size:clamp(30px,8vw,54px);letter-spacing:.05em;line-height:1;margin:7px 0 8px}
+.subtitle{text-align:center;color:#aeb3bd;font-size:13px;margin:0 0 20px}
+.credits{
+  text-align:center;
+  color:#9298a4;
+  font-size:12px;
+  line-height:1.8;
+  letter-spacing:.08em;
+  margin:0 0 14px;
+}
+.panel{background:rgba(20,22,28,.88);border:1px solid var(--line);border-radius:17px;padding:16px;margin:13px 0}
+.panel h2{font-size:17px;margin:0 0 13px}
+.setting{margin:14px 0}
+.setting-head{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:14px;font-weight:700}
+.value{color:#ff626b;font-variant-numeric:tabular-nums;white-space:nowrap}
+.setting p{color:#9ba1ad;font-size:12px;margin:4px 0 7px}
+input[type=range]{width:100%;accent-color:var(--red);height:24px}
+.presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 8px}
+.preset{padding:11px 7px;font-size:13px;border-color:#414650;background:#191c22}
+.preset.selected{background:#781c25;border-color:#ff515c;box-shadow:inset 0 0 0 1px #ff515c}
+.preset-description{color:#aeb3bd;font-size:12px;line-height:1.5;margin:8px 0 16px}
+#start{width:100%;border:0;background:#b71f2a;padding:16px;font-size:17px;letter-spacing:.06em;margin-top:8px}
+.note{font-size:11px;color:#818895;text-align:center;line-height:1.5;margin-top:12px}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:3}
+#topHud{position:absolute;top:calc(10px + env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.hudbox{background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 10px;font-size:12px;backdrop-filter:blur(5px)}
+#objective{max-width:65%;line-height:1.35}
+#batteryOuter{width:92px;height:7px;background:#454545;border-radius:10px;margin-top:5px;overflow:hidden}
+#battery{height:100%;width:70%;background:#e8e8e8}
+#status{color:#ff777e;margin-top:3px}
+#controls{position:absolute;inset:auto 0 calc(12px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:end;padding:0 13px;gap:10px;pointer-events:none}
+.cluster{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,50px);gap:6px;pointer-events:auto}
+.control{padding:0;border-radius:13px;background:rgba(12,14,18,.78);border:1px solid #777a81;font-size:19px;user-select:none;touch-action:none}
+#forward{grid-column:2;grid-row:1}
+#left{grid-column:1;grid-row:2}
+#back{grid-column:2;grid-row:2}
+#right{grid-column:3;grid-row:2}
+.actions{display:flex;flex-direction:column;gap:7px;pointer-events:auto}
+.actions button{min-width:90px;padding:10px 8px;font-size:11px;background:rgba(12,14,18,.88);touch-action:none}
+.actions button.active{border-color:#ff555e;color:#ff777e}
+#hint{position:absolute;bottom:calc(132px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:max-content;max-width:90%;text-align:center;font-size:12px;color:#fff;text-shadow:0 1px 5px #000;background:rgba(0,0,0,.35);padding:5px 9px;border-radius:8px}
+#crosshair{position:absolute;left:50%;top:50%;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.6);transform:translate(-50%,-50%)}
+#endScreen{display:flex;align-items:center;justify-content:center;text-align:center}
+#endTitle{font-size:clamp(32px,8vw,48px);margin:0 0 12px}
+#endText{color:#b7bbc3;line-height:1.5;margin:0 0 24px}
+#endScreen button{width:100%;margin-top:8px}
+#toMenu{background:#24272d}
+@media(min-width:700px){
+ #controls{padding:0 28px 20px}
+ .cluster{grid-template-columns:repeat(3,60px);grid-template-rows:repeat(2,56px)}
+ .actions button{min-width:120px;font-size:13px}
+}
+</style>
+</head>
+<body>
+
+<div id="menu">
+ <div class="wrap">
+  <div class="logo">NIGHTMARE PROJECT</div>
+<h1>DON'T LOOK BACK</h1>
+<div class="credits">
+  <div>Created by Arslan</div>
+  <div>Made in Kazakhstan 🇰🇿</div>
+</div>
+<p class="subtitle">Каждый запуск — новый лабиринт. Не дай ему найти тебя.</p>
+
+  <div class="panel">
+   <h2>Сложность</h2>
+   <div class="presets">
+    <button type="button" class="preset" data-preset="easy">Легко</button>
+    <button type="button" class="preset" data-preset="medium">Средне</button>
+    <button type="button" class="preset" data-preset="hard">Сложно</button>
+    <button type="button" class="preset" data-preset="nightmare">NIGHTMARE</button>
+    <button type="button" class="preset selected" data-preset="custom">Custom</button>
+   </div>
+   <p id="presetDescription" class="preset-description">Свои настройки сложности.</p>
+
+   <div class="setting">
+    <div class="setting-head"><label for="speed">Скорость монстра</label><span class="value" id="speedVal">60%</span></div>
+    <p>Как быстро монстр сокращает расстояние.</p>
+    <input id="speed" type="range" min="0" max="100" step="5" value="60">
+   </div>
+   <div class="setting">
+    <div class="setting-head"><label for="sense">Чувствительность</label><span class="value" id="senseVal">70%</span></div>
+    <p>Дальность, на которой он замечает или слышит тебя.</p>
+    <input id="sense" type="range" min="0" max="100" step="5" value="70">
+   </div>
+   <div class="setting">
+    <div class="setting-head"><label for="aggression">Агрессивность</label><span class="value" id="aggressionVal">60%</span></div>
+    <p>Насколько настойчиво он ищет последнюю известную позицию.</p>
+    <input id="aggression" type="range" min="0" max="100" step="5" value="60">
+   </div>
+   <div class="setting">
+    <div class="setting-head"><label for="darkness">Темнота</label><span class="value" id="darknessVal">20%</span></div>
+    <p>Чем выше значение, тем меньше видно без фонарика.</p>
+    <input id="darkness" type="range" min="0" max="100" step="5" value="20">
+   </div>
+   <div class="setting">
+    <div class="setting-head"><label for="charge">Заряд фонарика</label><span class="value" id="chargeVal">70%</span></div>
+    <p>Начальный заряд. Фонарик постепенно разряжается.</p>
+    <input id="charge" type="range" min="0" max="100" step="5" value="70">
+   </div>
+   <div class="setting">
+    <div class="setting-head"><label for="size">Размер лабиринта</label><span class="value" id="sizeVal">100%</span></div>
+    <p>Количество коридоров и развилок. Большая карта требует больше времени.</p>
+    <input id="size" type="range" min="0" max="100" step="5" value="100">
+   </div>
+  </div>
+
+  <button id="start">НАЧАТЬ НОВОЕ ПРОХОЖДЕНИЕ</button>
+  <div class="note">Управление: экранные кнопки · удерживай «БЕГ», чтобы ускориться · нажми «НАЗАД», чтобы оглянуться.<br>Нужен интернет для загрузки Three.js.</div>
+ </div>
+</div>
+
+<div id="hud" class="hidden">
+ <div id="topHud">
+  <div class="hudbox" id="objective">Найди выход <div id="status">Шаги могут выдать твоё местоположение.</div></div>
+  <div class="hudbox">ФОНАРИК <span id="batteryText">70%</span><div id="batteryOuter"><div id="battery"></div></div></div>
+ </div>
+ <div id="crosshair"></div>
+ <div id="hint">Ищи выход. Прислушивайся к шагам.</div>
+ <div id="controls">
+  <div class="cluster">
+   <button class="control" id="forward" aria-label="Вперёд">▲</button>
+   <button class="control" id="left" aria-label="Влево">◀</button>
+   <button class="control" id="back" aria-label="Назад">▼</button>
+   <button class="control" id="right" aria-label="Вправо">▶</button>
+  </div>
+  <div class="actions">
+   <button id="sound">🔊 ЗВУК: ВКЛ</button>
+   <button id="run">🏃 БЕГ</button>
+   <button id="look">↶ НАЗАД</button>
+   <button id="lamp">🔦 ФОНАРИК</button>
+  </div>
+ </div>
+</div>
+
+<div id="endScreen" class="hidden">
+ <div class="wrap">
+  <div class="logo">DON'T LOOK BACK</div>
+  <h2 id="endTitle">ТЫ ВЫБРАЛСЯ</h2>
+  <p id="endText">Ты пережил это прохождение.</p>
+  <button id="again">НОВЫЙ ЛАБИРИНТ</button>
+  <button id="toMenu">НАСТРОЙКИ</button>
+ </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+(()=>{
+'use strict';
+
+const $=id=>document.getElementById(id);
+const menu=$('menu'),hud=$('hud'),endScreen=$('endScreen'),hint=$('hint');
+
+const settingIds=['speed','sense','aggression','darkness','charge','size'];
+
+const presetValues={
+ easy:{speed:25,sense:25,aggression:20,darkness:10,charge:100,size:50},
+ medium:{speed:50,sense:50,aggression:45,darkness:35,charge:75,size:75},
+ hard:{speed:75,sense:75,aggression:75,darkness:65,charge:50,size:100},
+ nightmare:{speed:100,sense:100,aggression:100,darkness:100,charge:25,size:100},
+ custom:{speed:60,sense:70,aggression:60,darkness:20,charge:70,size:100}
+};
+
+const presetDescriptions={
+ easy:'Монстр медленный и менее внимательный. Фонарик почти не ограничивает.',
+ medium:'Сбалансированная сложность. Следи за шумом и зарядом.',
+ hard:'Монстр быстрее, внимательнее и настойчивее. Темнота мешает ориентироваться.',
+ nightmare:'Максимальная скорость, дальность обнаружения и агрессия. Почти полная темнота и мало заряда.',
+ custom:'Свои настройки сложности.'
+};
+
+let selectedPreset='custom';
+
+function saveSettings(){
+ try{
+  localStorage.setItem('dontLookBackSettings',JSON.stringify({
+   preset:selectedPreset,
+   values:Object.fromEntries(settingIds.map(id=>[id,+$(id).value]))
+  }));
+ }catch(e){}
+}
+
+function updatePresetUI(){
+ document.querySelectorAll('.preset').forEach(button=>{
+  const active=button.dataset.preset===selectedPreset;
+  button.classList.toggle('selected',active);
+  button.setAttribute('aria-pressed',String(active));
+ });
+ $('presetDescription').textContent=presetDescriptions[selectedPreset];
+}
+
+function applyPreset(name){
+ if(!presetValues[name])return;
+ selectedPreset=name;
+ settingIds.forEach(id=>{
+  $(id).value=presetValues[name][id];
+  $(id+'Val').textContent=$(id).value+'%';
+ });
+ updatePresetUI();
+ saveSettings();
+}
+
+function loadSettings(){
+ try{
+  const saved=JSON.parse(localStorage.getItem('dontLookBackSettings'));
+  if(!saved||!saved.values)return;
+  settingIds.forEach(id=>{
+   const value=Number(saved.values[id]);
+   if(Number.isFinite(value)){
+    $(id).value=Math.max(0,Math.min(100,value));
+    $(id+'Val').textContent=$(id).value+'%';
+   }
+  });
+  selectedPreset=presetValues[saved.preset]?saved.preset:'custom';
+ }catch(e){
+  selectedPreset='custom';
+ }
+}
+
+loadSettings();
+updatePresetUI();
+
+document.querySelectorAll('.preset').forEach(button=>{
+ button.addEventListener('click',()=>applyPreset(button.dataset.preset));
+});
+
+settingIds.forEach(id=>{
+ $(id).addEventListener('input',()=>{
+  $(id+'Val').textContent=$(id).value+'%';
+  selectedPreset='custom';
+  updatePresetUI();
+  saveSettings();
+ });
+});
+
+/* ЗВУКОВАЯ СИСТЕМА */
+let audioCtx=null;
+let masterGain=null;
+let droneGain=null;
+let droneOsc1=null;
+let droneOsc2=null;
+let audioEnabled=true;
+let monsterStepDistance=0;
+let lastMonsterX=0;
+let lastMonsterZ=0;
+let lastFootstepTime=0;
+
+function initAudio(){
+ const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+ if(!AudioContextClass)return;
+
+ if(!audioCtx){
+  audioCtx=new AudioContextClass();
+
+  masterGain=audioCtx.createGain();
+  masterGain.gain.value=audioEnabled?0.7:0;
+  masterGain.connect(audioCtx.destination);
+
+  // Тихий низкочастотный гул
+  droneGain=audioCtx.createGain();
+  droneGain.gain.value=0.025;
+  droneGain.connect(masterGain);
+
+  droneOsc1=audioCtx.createOscillator();
+  droneOsc1.type='sawtooth';
+  droneOsc1.frequency.value=43;
+  droneOsc1.connect(droneGain);
+  droneOsc1.start();
+
+  droneOsc2=audioCtx.createOscillator();
+  droneOsc2.type='sine';
+  droneOsc2.frequency.value=47;
+  droneOsc2.connect(droneGain);
+  droneOsc2.start();
+ }
+
+ if(audioCtx.state==='suspended'){
+  audioCtx.resume().catch(()=>{});
+ }
+}
+
+function setSoundEnabled(enabled){
+ audioEnabled=enabled;
+ $('sound').textContent=enabled?'🔊 ЗВУК: ВКЛ':'🔇 ЗВУК: ВЫКЛ';
+ $('sound').classList.toggle('active',enabled);
+
+ if(masterGain&&audioCtx){
+  masterGain.gain.setTargetAtTime(
+   enabled?0.7:0,
+   audioCtx.currentTime,
+   0.04
+  );
+ }
+}
+
+function playMonsterFootstep(distance){
+ if(!audioCtx||!audioEnabled||!masterGain||audioCtx.state!=='running')return;
+
+ const now=audioCtx.currentTime;
+ const volume=Math.max(0.008,1-distance/23)*0.48;
+ const length=Math.floor(audioCtx.sampleRate*0.16);
+ const buffer=audioCtx.createBuffer(1,length,audioCtx.sampleRate);
+ const data=buffer.getChannelData(0);
+
+ for(let i=0;i<length;i++){
+  const fade=1-i/length;
+  data[i]=(Math.random()*2-1)*fade*fade;
+ }
+
+ const source=audioCtx.createBufferSource();
+ source.buffer=buffer;
+
+ const filter=audioCtx.createBiquadFilter();
+ filter.type='lowpass';
+ filter.frequency.value=Math.max(100,450-distance*12);
+
+ const gain=audioCtx.createGain();
+ gain.gain.setValueAtTime(volume,now);
+ gain.gain.exponentialRampToValueAtTime(0.001,now+0.16);
+
+ source.connect(filter);
+ filter.connect(gain);
+ gain.connect(masterGain);
+ source.start(now);
+ source.stop(now+0.17);
+}
+
+function updateMonsterAudio(){
+ if(!monster||!player)return;
+
+ const dx=monster.position.x-lastMonsterX;
+ const dz=monster.position.z-lastMonsterZ;
+ const moved=Math.hypot(dx,dz);
+
+ lastMonsterX=monster.position.x;
+ lastMonsterZ=monster.position.z;
+ monsterStepDistance+=moved;
+
+ const distance=Math.hypot(
+  player.x-monster.position.x,
+  player.z-monster.position.z
+ );
+
+ const now=performance.now();
+
+ // Шаги воспроизводятся только пока монстр действительно движется.
+ if(monsterStepDistance>=1.35&&now-lastFootstepTime>180){
+  monsterStepDistance=0;
+  lastFootstepTime=now;
+  playMonsterFootstep(distance);
+ }
+
+ // Приближение монстра усиливает низкий гул.
+ if(droneGain&&audioCtx){
+  const proximity=Math.max(0,1-distance/18);
+  const targetVolume=0.025+proximity*0.12;
+
+  droneGain.gain.setTargetAtTime(
+   targetVolume,audioCtx.currentTime,0.18
+  );
+
+  if(droneOsc1){
+   droneOsc1.frequency.setTargetAtTime(
+    43-proximity*9,audioCtx.currentTime,0.2
+   );
+  }
+ }
+}
+
+function playLossSound(){
+ if(!audioCtx||!audioEnabled||!masterGain||audioCtx.state!=='running')return;
+
+ const now=audioCtx.currentTime;
+
+ [72,48].forEach((frequency,index)=>{
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+
+  osc.type='sawtooth';
+  osc.frequency.setValueAtTime(frequency,now);
+  osc.frequency.exponentialRampToValueAtTime(24,now+0.75);
+
+  gain.gain.setValueAtTime(index===0?0.32:0.2,now);
+  gain.gain.exponentialRampToValueAtTime(0.001,now+0.85);
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start(now);
+  osc.stop(now+0.9);
+ });
+}
+
+$('sound').addEventListener('click',()=>{
+ if(!audioCtx)initAudio();
+ setSoundEnabled(!audioEnabled);
+});
+
+let scene,camera,renderer,clock,playerLight,beam,mazeGroup,monster,monsterEyes=[];
+let wallMeshes=[],openCells=new Set();
+let grid=[],rows=31,cols=31,cellSize=4;
+let startCell={r:1,c:1},exitCell={r:29,c:29};
+let running=false,ended=false,flashlightOn=true,charge=70,aiTimer=0,patrolTarget=null,lastKnown=null,searchUntil=0;
+let keys={},touchMove={forward:false,back:false,left:false,right:false,run:false};
+let yaw=Math.PI,pitch=0;
+let player={x:0,z:0,y:1.65};
+let monsterCell={r:1,c:1},monsterPath=[],pathIndex=0;
+const raycaster=new THREE.Raycaster();
+let params={speed:60,sense:70,aggression:60,darkness:20,charge:70,size:100};
+
+function readSettings(){
+ params={
+  speed:+$('speed').value,
+  sense:+$('sense').value,
+  aggression:+$('aggression').value,
+  darkness:+$('darkness').value,
+  charge:+$('charge').value,
+  size:+$('size').value
+ };
+}
+
+function cellKey(r,c){return r+','+c;}
+function isOpen(r,c){return r>=0&&r<rows&&c>=0&&c<cols&&grid[r]&&grid[r][c]===0;}
+function worldX(c){return (c-(cols-1)/2)*cellSize;}
+function worldZ(r){return (r-(rows-1)/2)*cellSize;}
+
+function worldToCell(x,z){
+ return {
+  r:Math.max(0,Math.min(rows-1,Math.round(z/cellSize+(rows-1)/2))),
+  c:Math.max(0,Math.min(cols-1,Math.round(x/cellSize+(cols-1)/2)))
+ };
+}
+
+function randInt(n){return Math.floor(Math.random()*n);}
+
+function neighbors(r,c){
+ return [[r-2,c],[r+2,c],[r,c-2],[r,c+2]]
+  .filter(([rr,cc])=>rr>0&&cc>0&&rr<rows-1&&cc<cols-1&&grid[rr][cc]===1);
+}
+
+function generateMaze(){
+ const desired=Math.round(17+(params.size/100)*24);
+ rows=cols=desired%2===0?desired+1:desired;
+ grid=Array.from({length:rows},()=>Array(cols).fill(1));
+ startCell={r:1,c:1};
+ exitCell={r:rows-2,c:cols-2};
+ grid[1][1]=0;
+
+ const stack=[[1,1]];
+ while(stack.length){
+  const [r,c]=stack[stack.length-1];
+  const opts=neighbors(r,c);
+  if(!opts.length){stack.pop();continue;}
+
+  const [nr,nc]=opts[randInt(opts.length)];
+  grid[(r+nr)/2][(c+nc)/2]=0;
+  grid[nr][nc]=0;
+  stack.push([nr,nc]);
+ }
+
+ const chance=.015+(params.size/100)*.035;
+ for(let r=1;r<rows-1;r++)for(let c=1;c<cols-1;c++){
+  if(grid[r][c]!==1||Math.random()>=chance)continue;
+  const adjacent=[[r-1,c],[r+1,c],[r,c-1],[r,c+1]]
+   .filter(([rr,cc])=>grid[rr][cc]===0);
+  if(adjacent.length>=2)grid[r][c]=0;
+ }
+
+ grid[exitCell.r][exitCell.c]=0;
+ if(!findPath(startCell,exitCell).length)carveSimplePath(startCell,exitCell);
+}
+
+function carveSimplePath(a,b){
+ let r=a.r,c=a.c;
+ while(r!==b.r){r+=Math.sign(b.r-r);grid[r][c]=0;}
+ while(c!==b.c){c+=Math.sign(b.c-c);grid[r][c]=0;}
+}
+
+function findPath(from,to){
+ if(!from||!to||!isOpen(from.r,from.c)||!isOpen(to.r,to.c))return [];
+
+ const q=[[from.r,from.c]];
+ const prev=new Map([[cellKey(from.r,from.c),null]]);
+
+ for(let i=0;i<q.length;i++){
+  const [r,c]=q[i];
+  if(r===to.r&&c===to.c)break;
+
+  for(const [nr,nc] of [[r-1,c],[r+1,c],[r,c-1],[r,c+1]]){
+   const k=cellKey(nr,nc);
+   if(isOpen(nr,nc)&&!prev.has(k)){
+    prev.set(k,[r,c]);
+    q.push([nr,nc]);
+   }
+  }
+ }
+
+ const end=cellKey(to.r,to.c);
+ if(!prev.has(end))return [];
+
+ const path=[];
+ let cur=[to.r,to.c];
+ while(cur){
+  path.push({r:cur[0],c:cur[1]});
+  cur=prev.get(cellKey(cur[0],cur[1]));
+ }
+ return path.reverse();
+}
+
+function disposeGroup(group){
+ if(!group)return;
+ group.traverse(o=>{
+  if(o.geometry)o.geometry.dispose();
+  if(o.material){
+   if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());
+   else o.material.dispose();
+  }
+ });
+ if(group.parent)group.parent.remove(group);
+}
+
+function makeMaterial(color,roughness=1,extra={}){
+ return new THREE.MeshStandardMaterial({color,roughness,...extra});
+}
+
+function addBox(group,x,y,z,sx,sy,sz,mat){
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);
+ mesh.position.set(x,y,z);
+ group.add(mesh);
+ return mesh;
+}
+
+function buildWorld(){
+ if(mazeGroup)disposeGroup(mazeGroup);
+ mazeGroup=new THREE.Group();
+ scene.add(mazeGroup);
+ wallMeshes=[];
+ openCells=new Set();
+
+ const wallMat=makeMaterial(0x29292a);
+ const floorMat=makeMaterial(0x17191b);
+ const ceilingMat=makeMaterial(0x101114);
+ const rustMat=makeMaterial(0x45201d);
+ const span=rows*cellSize;
+
+ addBox(mazeGroup,0,-.22,0,span,.4,span,floorMat);
+ addBox(mazeGroup,0,4.25,0,span,.4,span,ceilingMat);
+
+ for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+  if(grid[r][c]===0){
+   openCells.add(cellKey(r,c));
+   continue;
+  }
+
+  const m=addBox(mazeGroup,worldX(c),1.9,worldZ(r),cellSize,3.8,cellSize,wallMat);
+  wallMeshes.push(m);
+
+  if(Math.random()<.045){
+   addBox(
+    mazeGroup,
+    worldX(c),
+    .65+Math.random()*1.6,
+    worldZ(r)+cellSize/2-.035,
+    .35+Math.random()*.7,
+    .25+Math.random()*.8,
+    .025,
+    rustMat
+   );
+  }
+ }
+
+ const lampMat=new THREE.MeshBasicMaterial({color:0xff2638});
+ for(let r=2;r<rows-2;r+=4)for(let c=2;c<cols-2;c+=4){
+  if(isOpen(r,c)&&Math.random()<.35){
+   addBox(mazeGroup,worldX(c),3.35,worldZ(r),.28,.12,.28,lampMat);
+   const l=new THREE.PointLight(0xff1d2d,params.darkness>65?1.5:.65,7);
+   l.position.set(worldX(c),3.1,worldZ(r));
+   mazeGroup.add(l);
+  }
+ }
+
+ const ex=worldX(exitCell.c),ez=worldZ(exitCell.r);
+ const doorMat=makeMaterial(0x34383e);
+ addBox(mazeGroup,ex-1.45,1.8,ez,.35,3.6,.45,doorMat);
+ addBox(mazeGroup,ex+1.45,1.8,ez,.35,3.6,.45,doorMat);
+ addBox(mazeGroup,ex,3.55,ez,3.25,.35,.45,doorMat);
+
+ const exitGlow=new THREE.PointLight(0x37ff9b,3,9);
+ exitGlow.position.set(ex,2.5,ez-1.2);
+ mazeGroup.add(exitGlow);
+
+ const signMat=new THREE.MeshBasicMaterial({color:0x36ff99});
+ addBox(mazeGroup,ex,3.05,ez-.28,1.5,.25,.08,signMat);
+}
+
+function makeMonster(){
+ if(monster)disposeGroup(monster);
+ monster=new THREE.Group();
+ monsterEyes=[];
+
+ const skin=makeMaterial(0x09090b);
+ const skin2=makeMaterial(0x151519);
+ const eyeMat=new THREE.MeshBasicMaterial({color:0xff1020});
+
+ const body=new THREE.Mesh(new THREE.CapsuleGeometry(.42,.95,4,8));
+ body.material=skin;
+ body.position.y=1.55;
+ monster.add(body);
+
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.38,12,10),skin2);
+ head.scale.set(.8,1.15,.8);
+ head.position.y=2.45;
+ monster.add(head);
+
+ for(const x of [-.16,.16]){
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(.075,8,8),eyeMat);
+  eye.position.set(x,2.5,.29);
+  monster.add(eye);
+  monsterEyes.push(eye);
+ }
+
+ for(const x of [-.48,.48]){
+  const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.12,1.05,3,6),skin);
+  arm.position.set(x,1.5,-.02);
+  arm.rotation.z=x<0?-.12:.12;
+  monster.add(arm);
+
+  const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.15,.85,3,6),skin);
+  leg.position.set(x*.58,.55,0);
+  monster.add(leg);
+ }
+
+ const shadow=new THREE.Mesh(
+  new THREE.CircleGeometry(.65,16),
+  new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.55})
+ );
+ shadow.rotation.x=-Math.PI/2;
+ shadow.position.y=.015;
+ monster.add(shadow);
+ scene.add(monster);
+}
+
+function chooseMonsterStart(){
+ const candidates=[];
+ for(const k of openCells){
+  const [r,c]=k.split(',').map(Number);
+  const d=Math.abs(r-startCell.r)+Math.abs(c-startCell.c);
+  if(d>Math.floor(rows*.35)&&!(r===exitCell.r&&c===exitCell.c)){
+   candidates.push({r,c});
+  }
+ }
+ return candidates.length?candidates[randInt(candidates.length)]:{r:rows-2,c:cols-2};
+}
+
+function placeMonster(){
+ monsterCell=chooseMonsterStart();
+ monsterPath=[];
+ pathIndex=0;
+ monster.position.set(worldX(monsterCell.c),0,worldZ(monsterCell.r));
+ patrolTarget=null;
+ lastKnown=null;
+ searchUntil=0;
+}
+
+function setupScene(){
+ if(renderer){
+  renderer.dispose();
+  renderer.domElement.remove();
+ }
+
+ scene=new THREE.Scene();
+ const darkness=params.darkness/100;
+ scene.background=new THREE.Color(darkness>.6?0x030407:0x101116);
+ scene.fog=new THREE.FogExp2(scene.background,0.006+darkness*.025);
+
+ camera=new THREE.PerspectiveCamera(74,innerWidth/innerHeight,.08,240);
+ camera.rotation.order='YXZ';
+
+ renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});
+ renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
+ renderer.setSize(innerWidth,innerHeight);
+ renderer.outputColorSpace=THREE.SRGBColorSpace;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;
+ renderer.toneMappingExposure=1.25;
+ document.body.appendChild(renderer.domElement);
+
+ scene.add(new THREE.HemisphereLight(0x7a8192,0x101014,.14+(.65-darkness*.45)));
+ scene.add(new THREE.AmbientLight(0x687080,.12+(1-darkness)*.32));
+
+ playerLight=new THREE.SpotLight(0xe5edff,55,25,Math.PI/7,.55,1.25);
+ playerLight.position.set(0,0,0);
+ playerLight.target.position.set(0,0,-1);
+ camera.add(playerLight);
+ camera.add(playerLight.target);
+ scene.add(camera);
+
+ const coneGeo=new THREE.ConeGeometry(.72,5.8,18,1,true);
+ coneGeo.rotateX(Math.PI/2);
+ beam=new THREE.Mesh(
+  coneGeo,
+  new THREE.MeshBasicMaterial({
+   color:0xbccfff,transparent:true,opacity:.055,
+   side:THREE.DoubleSide,depthWrite:false
+  })
+ );
+ beam.position.set(0,-.08,-3.1);
+ camera.add(beam);
+
+ buildWorld();
+ makeMonster();
+ placeMonster();
+}
+
+function wallAt(x,z){
+ const cell=worldToCell(x,z);
+ for(let r=cell.r-1;r<=cell.r+1;r++)for(let c=cell.c-1;c<=cell.c+1;c++){
+  if(r<0||c<0||r>=rows||c>=cols||grid[r][c]!==1)continue;
+  const wx=worldX(c),wz=worldZ(r),half=cellSize/2-.12;
+  const px=Math.max(wx-half,Math.min(x,wx+half));
+  const pz=Math.max(wz-half,Math.min(z,wz+half));
+  if((x-px)*(x-px)+(z-pz)*(z-pz)<.48*.48)return true;
+ }
+ return false;
+}
+
+function lineOfSight(from,to){
+ const origin=new THREE.Vector3(from.x,1.7,from.z);
+ const target=new THREE.Vector3(to.x,1.7,to.z);
+ const delta=target.clone().sub(origin),distance=delta.length();
+ if(distance<.1)return true;
+ raycaster.set(origin,delta.normalize());
+ raycaster.far=distance;
+ return raycaster.intersectObjects(wallMeshes,false).length===0;
+}
+
+function randomOpenCell(minDistance=0,from=worldToCell(player.x,player.z)){
+ const a=[];
+ for(const k of openCells){
+  const [r,c]=k.split(',').map(Number);
+  const d=Math.abs(r-from.r)+Math.abs(c-from.c);
+  if(d>=minDistance&&!(r===exitCell.r&&c===exitCell.c))a.push({r,c});
+ }
+ return a.length?a[randInt(a.length)]:{r:rows-2,c:cols-2};
+}
+
+function setMonsterTarget(target){
+ const p=findPath(monsterCell,target);
+ if(p.length>1){
+  monsterPath=p;
+  pathIndex=1;
+ }else{
+  monsterPath=[];
+  pathIndex=0;
+ }
+}
+
+function monsterAI(dt){
+ if(ended)return;
+ aiTimer-=dt;
+
+ const pcell=worldToCell(player.x,player.z);
+ const dx=player.x-monster.position.x;
+ const dz=player.z-monster.position.z;
+ const dist=Math.hypot(dx,dz);
+ const senseRange=4+params.sense*.16;
+ const sees=dist<senseRange&&lineOfSight(
+  {x:monster.position.x,z:monster.position.z},
+  {x:player.x,z:player.z}
+ );
+
+ const isRunning=touchMove.run||keys.ShiftLeft||keys.ShiftRight;
+ const hears=isRunning&&dist<(5+params.sense*.22);
+
+ if(sees||hears){
+  lastKnown={r:pcell.r,c:pcell.c};
+  searchUntil=performance.now()+5000+params.aggression*100;
+ }
+
+ if(aiTimer<=0){
+  aiTimer=.45;
+  if(sees||hears||(lastKnown&&performance.now()<searchUntil&&params.aggression>5)){
+   if(lastKnown)setMonsterTarget(lastKnown);
+  }else{
+   lastKnown=null;
+   if(!patrolTarget||(monsterCell.r===patrolTarget.r&&monsterCell.c===patrolTarget.c)){
+    patrolTarget=randomOpenCell(5,monsterCell);
+   }
+   setMonsterTarget(patrolTarget);
+  }
+ }
+
+ let speed=.15+(params.speed/100)*3.3;
+ if(sees||hears)speed*=1.08+(params.aggression/100)*.55;
+ else if(lastKnown&&performance.now()<searchUntil)speed*=.8+(params.aggression/100)*.4;
+
+ if(monsterPath.length&&pathIndex<monsterPath.length){
+  const target=monsterPath[pathIndex];
+  const tx=worldX(target.c),tz=worldZ(target.r);
+  const vx=tx-monster.position.x,vz=tz-monster.position.z;
+  const d=Math.hypot(vx,vz),step=speed*dt;
+
+  if(d<=step+.03){
+   monster.position.x=tx;
+   monster.position.z=tz;
+   monsterCell={r:target.r,c:target.c};
+   pathIndex++;
+
+   if(pathIndex>=monsterPath.length){
+    monsterPath=[];
+    if(lastKnown&&monsterCell.r===lastKnown.r&&monsterCell.c===lastKnown.c){
+     searchUntil=Math.min(searchUntil,performance.now()+900);
+    }
+   }
+  }else{
+   monster.position.x+=vx/d*step;
+   monster.position.z+=vz/d*step;
+  }
+ }
+
+ monster.position.y=Math.sin(performance.now()*.004)*.035;
+ monster.lookAt(camera.position.x,monster.position.y+1.4,camera.position.z);
+
+ if(dist<1.25&&lineOfSight(
+  {x:monster.position.x,z:monster.position.z},
+  {x:player.x,z:player.z}
+ )){
+  finish(false);
+ }
+}
+
+function updateMove(dt){
+ const forward=(touchMove.forward||keys.KeyW||keys.ArrowUp?1:0)-
+  (touchMove.back||keys.KeyS||keys.ArrowDown?1:0);
+ const sideways=(touchMove.right||keys.KeyD||keys.ArrowRight?1:0)-
+  (touchMove.left||keys.KeyA||keys.ArrowLeft?1:0);
+
+ if(!forward&&!sideways)return;
+
+ const isRunning=touchMove.run||keys.ShiftLeft||keys.ShiftRight;
+ const speed=isRunning?5.2:2.7;
+ const fx=-Math.sin(yaw),fz=-Math.cos(yaw);
+ const rx=Math.cos(yaw),rz=-Math.sin(yaw);
+
+ let mx=fx*forward+rx*sideways;
+ let mz=fz*forward+rz*sideways;
+ const len=Math.hypot(mx,mz)||1;
+ mx/=len;
+ mz/=len;
+
+ const nx=player.x+mx*speed*dt;
+ const nz=player.z+mz*speed*dt;
+
+ if(!wallAt(nx,player.z))player.x=nx;
+ if(!wallAt(player.x,nz))player.z=nz;
+
+ camera.position.set(player.x,player.y,player.z);
+
+ const cell=worldToCell(player.x,player.z);
+ if(cell.r===exitCell.r&&cell.c===exitCell.c)finish(true);
+}
+
+function updateFlashlight(dt){
+ if(flashlightOn&&charge>0){
+  charge=Math.max(0,charge-dt*(.10+params.darkness*.0035));
+  if(charge<=0){
+   flashlightOn=false;
+   $('lamp').classList.remove('active');
+   hint.textContent='Фонарик разрядился. Ищи выход в темноте.';
+  }
+ }
+
+ playerLight.visible=flashlightOn&&charge>0;
+ beam.visible=flashlightOn&&charge>0;
+ playerLight.intensity=55*(.35+charge/100*.65)*(.65+params.darkness/100*.35);
+ playerLight.distance=19+params.darkness*.11;
+
+ $('batteryText').textContent=Math.ceil(charge)+'%';
+ $('battery').style.width=charge+'%';
+ $('battery').style.background=charge<20?'#ff303b':'#e8e8e8';
+}
+
+function finish(won){
+ if(ended)return;
+
+ ended=true;
+ running=false;
+
+ if(!won)playLossSound();
+
+ hud.classList.add('hidden');
+ endScreen.classList.remove('hidden');
+ $('endTitle').textContent=won?'ТЫ ВЫБРАЛСЯ':'ОН ТЕБЯ НАШЁЛ';
+ $('endText').textContent=won
+  ?'Ты нашёл выход из этого лабиринта. Но следующий будет другим.'
+  :'Ты не успел скрыться. Новый лабиринт будет другим — попробуй ещё раз.';
+}
+
+function startGame(){
+ readSettings();
+
+ // Браузеры разрешают звук после действия пользователя.
+ initAudio();
+
+ menu.classList.add('hidden');
+ endScreen.classList.add('hidden');
+ hud.classList.remove('hidden');
+
+ generateMaze();
+ setupScene();
+
+ player.x=worldX(startCell.c);
+ player.z=worldZ(startCell.r);
+ player.y=1.65;
+ yaw=Math.PI;
+ pitch=0;
+
+ camera.position.set(player.x,player.y,player.z);
+ camera.rotation.set(0,yaw,0);
+
+ // Синхронизируем координаты, чтобы при старте не было ложного шага.
+ lastMonsterX=monster.position.x;
+ lastMonsterZ=monster.position.z;
+ monsterStepDistance=0;
+ lastFootstepTime=performance.now();
+
+ charge=params.charge;
+ flashlightOn=charge>0;
+ $('lamp').classList.toggle('active',flashlightOn);
+
+ ended=false;
+ running=true;
+ clock=new THREE.Clock();
+ aiTimer=0;
+
+ $('objective').childNodes[0].textContent='Найди выход ';
+ hint.textContent='Не шуми без необходимости. Монстр слышит бег.';
+
+ animate();
+}
+
+function animate(){
+ if(!running)return;
+ requestAnimationFrame(animate);
+
+ const dt=Math.min(clock.getDelta(),.05);
+ updateMove(dt);
+ updateFlashlight(dt);
+ monsterAI(dt);
+ updateMonsterAudio();
+
+ if(!ended)renderer.render(scene,camera);
+}
+
+function bindHold(id,key){
+ const el=$(id);
+
+ const on=e=>{
+  e.preventDefault();
+  touchMove[key]=true;
+  el.classList.add('active');
+  try{el.setPointerCapture(e.pointerId);}catch(_){}
+ };
+
+ const off=e=>{
+  e.preventDefault();
+  touchMove[key]=false;
+  el.classList.remove('active');
+ };
+
+ el.addEventListener('pointerdown',on);
+ el.addEventListener('pointerup',off);
+ el.addEventListener('pointercancel',off);
+ el.addEventListener('lostpointercapture',off);
+}
+
+[['forward','forward'],['back','back'],['left','left'],['right','right'],['run','run']]
+ .forEach(([id,key])=>bindHold(id,key));
+
+$('look').addEventListener('pointerdown',e=>{
+ e.preventDefault();
+ yaw+=Math.PI;
+ camera.rotation.set(pitch,yaw,0);
+ $('look').classList.add('active');
+});
+
+$('look').addEventListener('pointerup',()=> $('look').classList.remove('active'));
+$('look').addEventListener('pointercancel',()=> $('look').classList.remove('active'));
+
+$('lamp').addEventListener('click',()=>{
+ if(charge<=0){
+  hint.textContent='Заряд фонарика закончился.';
+  return;
+ }
+ flashlightOn=!flashlightOn;
+ $('lamp').classList.toggle('active',flashlightOn);
+});
+
+window.addEventListener('keydown',e=>{
+ keys[e.code]=true;
+
+ if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)){
+  e.preventDefault();
+ }
+
+ if(e.code==='KeyF'&&charge>0){
+  flashlightOn=!flashlightOn;
+  $('lamp').classList.toggle('active',flashlightOn);
+ }
+
+ if(e.code==='KeyQ'){
+  yaw+=Math.PI;
+  camera.rotation.set(pitch,yaw,0);
+ }
+});
+
+window.addEventListener('keyup',e=>{keys[e.code]=false;});
+
+let dragging=false,lastX=0,lastY=0;
+
+function startDrag(e){
+ if(e.target.closest('button')||e.target.closest('#menu')||e.target.closest('#endScreen'))return;
+ dragging=true;
+ lastX=e.clientX;
+ lastY=e.clientY;
+}
+
+window.addEventListener('pointerdown',startDrag);
+
+window.addEventListener('pointermove',e=>{
+ if(!dragging||!running)return;
+
+ const dx=e.clientX-lastX,dy=e.clientY-lastY;
+ lastX=e.clientX;
+ lastY=e.clientY;
+
+ yaw-=dx*.006;
+ pitch=Math.max(-1.15,Math.min(1.15,pitch-dy*.004));
+ camera.rotation.set(pitch,yaw,0);
+});
+
+window.addEventListener('pointerup',()=>dragging=false);
+window.addEventListener('pointercancel',()=>dragging=false);
+
+window.addEventListener('resize',()=>{
+ if(camera&&renderer){
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+ }
+});
+
+$('start').addEventListener('click',startGame);
+$('again').addEventListener('click',startGame);
+
+$('toMenu').addEventListener('click',()=>{
+ running=false;
+ endScreen.classList.add('hidden');
+ menu.classList.remove('hidden');
+});
+ 
+})();
+</script>
+</body>
+</html>
